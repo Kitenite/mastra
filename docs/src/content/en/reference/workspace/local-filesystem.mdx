@@ -72,6 +72,12 @@ isOptional: true,
 defaultValue: "[]",
 },
 {
+name: "instructions",
+type: "string | ((opts: { defaultInstructions: string; requestContext?: RequestContext }) => string)",
+description: "Custom instructions that override the default instructions returned by getInstructions(). Pass a string to fully replace them, or a function to extend them with access to the current requestContext for per-request customization.",
+isOptional: true,
+},
+{
 name: "readOnly",
 type: "boolean",
 description: "When true, all write operations are blocked. Read operations are still allowed.",
@@ -456,14 +462,41 @@ const info = filesystem.getInfo()
 // { id: '...', name: 'LocalFilesystem', provider: 'local', basePath: '/workspace', readOnly: false }
 ```
 
-### `getInstructions()`
+### `getInstructions(opts?)`
 
-Returns a description of how paths work in this filesystem. Used in tool descriptions.
+Returns a description of how paths work in this filesystem. Injected into the agent system message via `WorkspaceInstructionsProcessor`.
 
 ```typescript
 const instructions = filesystem.getInstructions()
 // 'Local filesystem at "/workspace". Files at workspace path "/foo" are stored at "/workspace/foo" on disk.'
 ```
+
+When an `instructions` option is provided, it overrides the default output:
+
+```typescript
+const filesystem = new LocalFilesystem({
+  basePath: './workspace',
+  instructions: ({ defaultInstructions, requestContext }) => {
+    const locale = requestContext?.get('locale') ?? 'en'
+    return `${defaultInstructions}\nLocale: ${locale}`
+  },
+})
+
+const instructions = filesystem.getInstructions({ requestContext: ctx })
+```
+
+**Parameters:**
+
+<PropertiesTable
+  content={[
+{
+name: "opts.requestContext",
+type: "RequestContext",
+description: "Optional request context passed through to the instructions function",
+isOptional: true,
+},
+]}
+/>
 
 ## Path resolution
 

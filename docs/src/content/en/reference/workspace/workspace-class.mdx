@@ -296,7 +296,41 @@ const info = await workspace.getInfo()
 // { id, name, status, createdAt, lastAccessedAt, filesystem?, sandbox? }
 ```
 
-#### `getPathContext()`
+#### `getInstructions(opts?)`
+
+Get workspace instructions describing the filesystem and sandbox configuration. These instructions are injected into the agent system message via `WorkspaceInstructionsProcessor` to help agents understand the execution context.
+
+```typescript
+const instructions = workspace.getInstructions()
+// 'Local filesystem at "/workspace". Files at workspace path "/foo" are stored at "/workspace/foo" on disk.\nLocal command execution. Working directory: "/workspace".'
+```
+
+When providers have an `instructions` option set, the override is applied. Pass `requestContext` to enable per-request customization:
+
+```typescript
+const instructions = workspace.getInstructions({ requestContext: ctx })
+```
+
+**Parameters:**
+
+<PropertiesTable
+  content={[
+{
+name: "opts.requestContext",
+type: "RequestContext",
+description: "Optional request context forwarded to provider getInstructions() calls",
+isOptional: true,
+},
+]}
+/>
+
+#### `getPathContext()` _(deprecated)_
+
+:::caution[Deprecated]
+
+Use `getInstructions()` instead. `getPathContext()` will be removed in a future release.
+
+:::
 
 Get information about filesystem and sandbox paths, including instructions for agents.
 
@@ -304,8 +338,6 @@ Get information about filesystem and sandbox paths, including instructions for a
 const context = workspace.getPathContext()
 // { filesystem?, sandbox?, instructions }
 ```
-
-The `instructions` field contains provider-generated descriptions combined from the filesystem and sandbox. These instructions are included in tool descriptions to help agents understand the execution context.
 
 #### `getToolsConfig()`
 
